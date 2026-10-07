@@ -1,0 +1,18 @@
+name: A mistake in the documentation
+description: Something in the README, the student guide or another document is wrong or unclear.
+labels: ["documentation"]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The document, and the section or line.
+    validations:
+      required: true
+  - type: textarea
+    id: whats-wrong
+    attributes:
+      label: What's wrong
+      description: What it says, and what you think is right. A source link helps.
+    validations:
+      required: true

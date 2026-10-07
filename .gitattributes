@@ -1,0 +1,42 @@
+# LINE ENDINGS ARE PART OF THE PRODUCT CONTRACT, NOT A PREFERENCE.
+#
+# Git for Windows installs with core.autocrlf=true by default, so without this
+# file a Windows team's clone converts every shipped text file to CRLF. Two
+# independent failures follow, both measured 2026-09-03:
+#
+#   1. `#!/usr/bin/env bash` gains a CR. The installer does not run at all --
+#      "$'\r': command not found", "set: pipefail^M: invalid option name",
+#      exit 2, which is not even a documented exit code.
+#   2. The installer validates the settings template against a SHA-256 baked
+#      into the script. CRLF changes the bytes, so the hash misses and the run
+#      dies with exit 14, "baseline source files missing or unreadable" -- a
+#      message that is false. The file is present and readable.
+#
+# Both are fixed by checking these files out with LF on every platform. Git Bash
+# reads LF correctly on Windows; it is the CR that breaks things.
+#
+# Do NOT relax this to `text=auto`. The line-ending regression test in the build repository
+# exists for exactly this, and it clones the published distribution to check it.
+
+* text=auto eol=lf
+
+# BINARY FILES MUST BE DECLARED, OR THE RULE ABOVE CORRUPTS THEM. `text=auto` asks git to
+# guess, and a PNG whose bytes happen to look text-ish gets line-ending conversion applied
+# to its pixel data -- the file is then a corrupt image on the clone, with no error anywhere.
+# Measured 2026-09-05: adding docs/images/*.png without this stanza produced a corrupted
+# PNG in a Windows-style clone of the published export, caught by the line-ending
+# regression test in the build repository. Declare every binary extension the distribution ships.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.ico  binary
+
+# The verdict contract and every shipped script are byte-compared somewhere.
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.template text eol=lf

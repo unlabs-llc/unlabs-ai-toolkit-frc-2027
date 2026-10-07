@@ -1,0 +1,62 @@
+// Unlabs AI Toolkit for FRC 2027 Season Teams — compile-probe init script.
+//
+// SHIPPED, FIXED, AND REVIEWED. This file is the privilege boundary. It is executed by Gradle with
+// whatever authority the build has, so it must never be generated at run time by a model: an earlier
+// design had the assistant author this script on every probe, which meant granting permission to
+// execute code that did not exist when the grant was reviewed.
+//
+// It is STATIC. The probe directory arrives in the environment variable FRC_PROBE_DIR rather than
+// being interpolated into the file, so the file's bytes — and therefore the command line that runs
+// it — are identical on every run. That is what lets a permission rule name it exactly.
+//
+// It relocates compileJava's three output locations into the probe directory and refuses to run if
+// any of them would land anywhere else. It adds one source directory and touches nothing else.
+
+def probeDir = System.getenv('FRC_PROBE_DIR')
+if (probeDir == null || probeDir.trim().isEmpty()) {
+    throw new org.gradle.api.GradleException(
+        'FRC-PROBE-NO-DIR: FRC_PROBE_DIR is unset; refusing to guess a probe directory')
+}
+def probeRoot = new java.io.File(probeDir)
+if (!probeRoot.isDirectory()) {
+    throw new org.gradle.api.GradleException(
+        'FRC-PROBE-NO-DIR: FRC_PROBE_DIR is not a directory: ' + probeDir)
+}
+
+def frcProbeJavaProjects = []
+gradle.afterProject { proj, ex ->
+    if (proj.plugins.hasPlugin('java')) {
+        frcProbeJavaProjects.add(proj.path)
+        def sourceSets = proj.extensions.getByType(org.gradle.api.tasks.SourceSetContainer)
+        sourceSets.getByName('main').java.srcDir(probeDir + '/src')
+        proj.tasks.named('compileJava') {
+            destinationDirectory.set(new java.io.File(probeDir + '/out'))
+            options.generatedSourceOutputDirectory.set(new java.io.File(probeDir + '/gen'))
+            options.headerOutputDirectory.set(new java.io.File(probeDir + '/hdr'))
+            doFirst {
+                def mismatches = []
+                def expect = { name, prop ->
+                    def expected = new java.io.File(probeDir + '/' + name).getCanonicalPath()
+                    def actualFile = prop.getAsFile().getOrNull()
+                    def actual = (actualFile == null) ? null : actualFile.getCanonicalPath()
+                    if (actual != expected) {
+                        mismatches.add(name + ' would be written to ' + actual)
+                    }
+                }
+                expect('out', destinationDirectory)
+                expect('gen', options.generatedSourceOutputDirectory)
+                expect('hdr', options.headerOutputDirectory)
+                if (!mismatches.isEmpty()) {
+                    throw new org.gradle.api.GradleException(
+                        'FRC-PROBE-DEST-MISMATCH: ' + mismatches.join('; '))
+                }
+            }
+        }
+    }
+}
+gradle.projectsEvaluated {
+    if (frcProbeJavaProjects.size() != 1) {
+        throw new org.gradle.api.GradleException(
+            'FRC-PROBE-PROJECT-COUNT: java-plugin projects in this build: ' + frcProbeJavaProjects)
+    }
+}

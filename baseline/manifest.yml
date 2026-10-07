@@ -1,0 +1,584 @@
+# Unlabs AI Toolkit for FRC 2027 Season Teams — manifest
+# Copyright Unlabs, LLC — PolyForm Noncommercial 1.0.0. Commercial use: see ../COMMERCIAL-LICENSE.md
+#
+# ONE manifest, not three. Earlier drafts specified three overlapping version/manifest artifacts
+# written by different processes; this file carries the union of their fields.
+#
+# PATH CONTEXT FOR THE VERBATIM INSTALLED COPY. The `artifacts[].path` values record intended
+# team-project destinations, relative to the project root; as stated below, they do not grant the
+# installer authority to write them. A non-null `retained_at:` value names where something
+# withdrawn is retained; it is a descriptive location, not necessarily a resolvable path.
+#
+# TWO FIELD SETS, AND NO PROCESS CURRENTLY WRITES EITHER. This is an OWNERSHIP statement — who may
+# edit what, if and when a writer is built — not a description of anything that runs today:
+#   release  — owns `release:`. Never hand-edited: a hand-edited version field is indistinguishable
+#              from a correct one and defeats every downstream currency check. No release process
+#              ships in this repository; the build pipeline runs the check suite and nothing
+#              writes these fields.
+#   scaffold — owns `install:`, and deliberately leaves it alone; see the `install:` block below.
+# The `artifacts:` list is authored by hand and reviewed; nothing rewrites it.
+#
+# An earlier revision of this block said the scaffold "writes `install:` only", which the `install:`
+# block below flatly contradicts. Measured 2026-08-28: the scaffold is
+# `install_if_absent "$SRC_DIR/baseline/manifest.yml" .claude/frc-baseline-manifest.yml` — a copy —
+# and it reads this file only for `  version:`. The installed copy is byte-identical to this one, with
+# both `install:` fields null, across a fresh install, a re-run and a vendored copy.
+#
+# READABLE WITH NO NETWORK. A team in a competition pit with no connectivity answers "what do we
+# have?" by reading this file. No API call, no remote lookup — that is a property of the FILE, and it
+# is the only claim this paragraph makes.
+#
+# It used to promise more: that "with no manifest present, the version check reports 'no baseline
+# installed' rather than failing obscurely". No such check ships. Measured 2026-08-28: that string
+# occurs nowhere in this repository except the sentence that promised it. What the installer does
+# with a MISSING SOURCE manifest is exit 14 before any project write; a missing PROJECT manifest is
+# simply installed.
+
+schema_version: 1
+
+release:
+  # OWNED BY THE RELEASE PROCESS. Do not hand-edit these fields: a hand-edited version is
+  # indistinguishable from an established one and defeats every downstream currency check.
+  #
+  # In the build repository they carry a development version and nulls, and that is the honest
+  # state there — nothing has been released from a working tree. The publication step writes them,
+  # checks that the write landed, and refuses to produce a tree that still carries a development
+  # version anywhere. So a manifest that reaches a team states the version, date and tag it was
+  # actually built from, and a manifest in the build repository does not pretend to.
+  version: 1.0.0_Alpha-7
+  released: 2026-10-07
+  source_ref: v1.0.0_Alpha-7
+  schema_host_verified: 2026-08-06
+
+install:
+  # RESERVED FOR THE SCAFFOLD AND NOT WRITTEN BY IT. Both fields are null in every installation: the
+  # scaffold copies this file verbatim and substitutes nothing into it. Reading them as provenance
+  # was the defect, and the fix is not to fill them in -- a ref the scaffold
+  # had guessed would be worse than a null, because it would read as established.
+  #
+  # What the scaffold CAN establish it records where a team will look for it: the comment on the
+  # first line of the CLAUDE.md the scaffold WRITES carries the baseline version, the install date,
+  # and either the git ref of the baseline checkout it was installed from or a plain statement in
+  # words that no ref was recorded. Which of the two it carries is not fixed, and a reader has to look.
+  #
+  # A ref is recorded ONLY when the baseline source directory is the top level of a git worktree OF
+  # ITS OWN — not the worktree being installed into. Corrected 2026-08-28 together with the installer:
+  # the condition was previously stated as "the top level of a git worktree with a readable HEAD",
+  # and a release vendored at a ROBOT PROJECT'S ROOT satisfies that while the ref it yields is the
+  # robot's commit, not the baseline's. The installer's own comment calls a ref naming the wrong
+  # repository worse than the null. This sentence and that guard have to move together; they have
+  # come apart once before, and the stale twin was left standing here.
+  #
+  # A CLAUDE.md already in place is left byte-for-byte alone. The scaffold checks the template-defined
+  # structure of its first-line header, the current baseline version and source-ref value, and the
+  # decimal YYYY-MM-DD shape of its install date. It also compares its three marked blocks byte for
+  # byte. Everything else outside the header and those markers is not compared, and the run says so
+  # at that step. A file carrying matching blocks but no matching provenance header therefore does not
+  # pass; passing confirms only those checked regions, not authorship or any other text in the file.
+  installed_from_ref: null
+  installed_at: null
+
+# ---------------------------------------------------------------------------------------------
+# THE PATH LIST RECORDS THE INTENDED SET of baseline-managed files.
+#
+# It is not the installer's destination authority. setup/setup-frc-baseline.sh has independent
+# destination logic and does not reject a write merely because its path is absent here. Presence or
+# absence in this list therefore does not establish which paths an installer run can write.
+#
+# Entries are explicit, never globs, so changes to the recorded set are reviewable as individual
+# paths. (The `withdrawn:` list below does carry one glob; the rule stated here governs this list,
+# which is the one the consumers read.)
+#
+# THE PER-ROW FIELDS ARE MAINTAINER NOTES, NOT RUNTIME CONTROLS. At this revision, the source readers
+# that parse `artifacts:` extract its `path:` rows and do not branch on `placement`,
+# `placement_condition`, `update_triggers` or `network`.
+#
+#   network:           — `unaudited` is a non-verdict. It does not establish that an artifact can or
+#                        cannot reach a network, and it must not be used as permission, isolation or
+#                        release evidence.
+#
+#                        Promote a row only after testing the artifact's actual procedure and citing
+#                        that evidence in the row's `note:`. An omitted WebFetch tool is insufficient:
+#                        shell commands, Gradle dependency resolution and explicit fetch steps must
+#                        be measured where the artifact instructs them.
+
+artifacts:
+  - path: .claude/skills/current-wpilib-2027/SKILL.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release]
+    network: unaudited
+    optional: false
+    note: >-
+      The schema host. Every volatile WPILib fact lives here and every other artifact cites it —
+      except a working string, which has nowhere to put a citation and restates the fact by
+      mechanism instead. A WPILib beta is absorbed by editing this artifact, the dated stamps, and
+      every such working string; the host's beta procedure (step 4 of "Absorbing a WPILib release")
+      re-derives that set with a search rather than a maintained list, because a maintained list of
+      these surfaces was already incomplete on the day it was written.
+
+  - path: .claude/skills/current-wpilib-2027/references/namespaces.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/skills/current-wpilib-2027/references/ref-divergence.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/skills/current-wpilib-2027/references/commands.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/skills/current-wpilib-2027/references/gradle-tasks.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/skills/current-claude-models/SKILL.md
+    placement: skill
+    placement_condition: standalone
+    update_triggers: [claude-model-release]
+    network: unaudited
+    optional: false
+    note: >-
+      The model-currency host, sibling of the WPILib host and deliberately on its OWN clock — one
+      stamp covering two fact families is ambiguous about which was re-verified. Re-verified every
+      30 days, not 90; the exception is staleness data held by the build checks, not a branch in the
+      runner. Owns identifiers, the closed role vocabulary, context windows, effort levels and
+      retirement dates. Owns NO pricing, plan names or seat tiers — that class is recorded as
+      deliberately out of scope rather than assigned to an artifact that does not exist.
+
+  - path: .claude/settings.json
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      When `.claude/settings.json` is absent, the scaffold copies
+      baseline/templates/settings.json.template there byte for byte. When the destination already
+      exists, the scaffold does not write it. With `jq`, it checks JSON structure and whether the
+      existing `permissions.deny` array contains the deny strings from the template; it does not
+      compare `permissions.allow` or other keys. If that check cannot complete or a template deny
+      string is missing, the scaffold leaves the file unchanged and records exit 18. The v1.0
+      template contains one informational SessionStart hook and no PreToolUse, blocking, or
+      deploy-gate hook.
+
+  - path: CLAUDE.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release, season-kickoff]
+    network: unaudited
+    optional: false
+    note: >-
+      Team-owned after install. The scaffold writes it only if absent. Its toolchain-override
+      section restates schema-host facts by necessity — see the baseline source repository's
+      docs/ARCHITECTURE.md, "The one recorded exception to cite-don't-restate". That is a
+      maintainer-facing repository path; docs/ is not installed on a team machine.
+
+  - path: .claude/skills/frc-pre-deploy/SKILL.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      On `network:` — like every row, this one reads `unaudited`; see the field's note above. What is
+      known here and worth stating: the Gradle invocations this skill's SCRIPT runs carry no
+      `--offline`, so they may resolve dependencies or fetch a wrapper distribution. The skill itself
+      grants only the runner — an earlier revision of this sentence said it granted those task forms,
+      which was true until 2026-08-28 and is the twin of a permission narrowing made that day. Nothing here reaches the network deliberately, and that is not the same claim.
+      Writes the run's verdict. The deploy gate that was DESIGNED to read it is WITHDRAWN (see
+      `withdrawn:` below) — this skill reports to the team, and nothing shipped acts on its verdict.
+      The two halves were specified in different requests with INCOMPATIBLE schemas. That was
+      resolved by emitting the union, and a build-time contract test asserts that the retained
+      reader accepts what this writer emits. The pair has never run end to end on a real project, because one half
+      is withdrawn and does not ship.
+
+  - path: .claude/skills/frc-pre-deploy/scripts/run-pre-deploy.sh
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      This is the script that makes the unqualified `./gradlew` calls described in the skill's note
+      above. Its `network:` value, like every row's, is `unaudited`.
+
+  - path: .claude/tools/frc-docs-probe.sh
+    network: unaudited          # it runs the team's Gradle build, which resolves dependencies
+    placement: tool
+    update_triggers: [wpilib-release]
+    optional: false
+    note: >-
+      The compile-probe driver, and the privilege boundary for API checking. The permission template
+      pre-approves running THIS FILE, so everything it does internally runs without further prompting;
+      that is why it is shipped and reviewed rather than assembled by a model at run time. It takes one
+      validated fully-qualified name as DATA, creates its own probe directory under TMPDIR (default
+      /tmp) without checking that this lies outside the project,
+      writes a scratch class, compiles it against this project's real dependency tree through the
+      static init script beside it, and prints a structured verdict. A non-zero exit is never NOT
+      FOUND: only a run whose positive control compiled can distinguish absence from a broken
+      toolchain.
+
+  - path: .claude/tools/frc-docs-probe.init.gradle
+    network: none
+    placement: tool
+    update_triggers: [wpilib-release]
+    optional: false
+    note: >-
+      Static Gradle init script for the probe driver. It relocates compileJava's three output
+      locations into the probe directory and refuses to run if any would land elsewhere. It is FIXED:
+      the probe directory arrives in FRC_PROBE_DIR rather than being interpolated, so its bytes and
+      the command line that runs it are identical on every run. An earlier design had the assistant
+      author this file per run, which meant permitting code that did not exist when the permission
+      was reviewed.
+
+  - path: .claude/tools/frc-version-check.sh
+    network: api.github.com     # at most one unauthenticated GET per check; silent if unknown
+    placement: tool
+    update_triggers: [toolkit-release]
+    optional: false
+    note: >-
+      The session-start update check, run by the one hook this baseline installs (SessionStart, in
+      the settings template). It compares this manifest's release version with the public
+      repository's latest GitHub Release and, when a newer one exists, prints a warning the student
+      sees and context the assistant repeats; a release titled with "[security]" says to pause and
+      ask a mentor. It gates nothing and writes nothing inside the project; its cache is in the
+      user's XDG cache directory. Each session start makes at most one request with a three-second
+      timeout, and successful and failed results are cached per user for 24 hours when the cache can
+      be written. Network row promoted from the release's fixture tests, which replace curl with a
+      logging shim: no request for a development build, an opted-out session
+      (FRC_TOOLKIT_NO_UPDATE_CHECK=1), or a cached answer.
+
+  - path: .claude/agents/frc-docs-checker.md
+    network: unaudited
+    placement: skill            # a subagent: not slash-invoked, delegated to
+    placement_condition: needs-model-invocation
+    update_triggers: [wpilib-release, claude-code-release]
+    optional: false
+    note: >-
+      The attempted structural answer to fabricated API names. Its tool allowlist omits WebFetch but
+      includes Bash, and its Gradle invocation can need uncached wrapper or dependency resources;
+      network isolation is therefore NOT classified or enforced for this artifact.
+      ACCEPTANCE-TESTED 2026-09-04, and the release block this entry carried is lifted. In a project
+      built from the WPILib extension's own alpha-7 template resources and installed by this
+      scaffold, with the shipped permission template unmodified and no bypass: the subagent
+      registered, was delegated to, invoked the shipped probe driver exclusively, and returned
+      org.wpilib.util.Alert FOUND and org.wpilib.driverstation.Alert NOT FOUND with its positive
+      control compiling -- matching an independent javap measurement of the same jars. What is
+      still NOT established: behaviour on Windows, and behaviour in a project that already had a
+      .claude/settings.json. The installer leaves such a file unchanged and does not inspect its
+      permissions.allow, so it cannot say whether the driver call is permitted there. That file's own
+      rules decide, deny then ask then allow -- a deny or ask rule that matches the driver call comes
+      first; the exact allow works only when no deny or ask rule matches; and a call that matches no
+      rule at all falls to the session's permission mode, a prompt in the default mode and UNVERIFIED
+      only when refused. docs/LIMITATIONS.md gives the line to add. This case is untested, not
+      necessarily broken. Two earlier wordings treated the exact allow's presence or absence as
+      decisive, which the deny-ask-allow order does not support.
+
+  # ---------------------------------------------------------------------------------------------
+  # THE TEN COMMANDS.
+  #
+  # NO `frc-` PREFIX. That prefix is reserved for skills and subagents; a command's basename is what
+  # the student types, and prefixing it would make every invocation longer for no gain. Provenance
+  # therefore lives INSIDE each file — every one carries the copyright header, a `Last verified`
+  # stamp and the schema-host upstream declaration line that a build check reconciles. (That line is
+  # NOT quoted here: that check harvests the literal string wherever it appears, so quoting it here
+  # would enrol this manifest as a consumer of the host. Same standing condition as a detector that
+  # matches its own rule text.) Note the consequence: the manifest's
+  # path list, not the name prefix, is what identifies these as baseline-managed (see the block
+  # above); the commands are the first artifacts where the prefix heuristic would actively give
+  # the wrong answer.
+  #
+  # TWO ARE RENAMED FROM THEIR REQUESTED BASENAMES, both for the same reason — a collision with the
+  # Claude Code product surface, where the resolution order is undocumented:
+  #   debug  -> robot-debug   `/debug` is a bundled skill                    (ruled 2026-08-02)
+  #   review -> robot-review  `/review` is an ALIAS row for `/code-review`   (ruled 2026-08-10)
+  # `/review` had been CLEARED on 2026-08-02 by a check that read only the command column. The
+  # collision check now
+  # fetches the product's page at build time and reads aliases and bundled skills too. Do not rename
+  # either back; that check will reject it.
+  # ---------------------------------------------------------------------------------------------
+
+  - path: .claude/commands/subsystem.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/command.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/auto.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/robot-debug.md
+    placement: command
+    update_triggers: [claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      Renamed from `debug`: `/debug` is a Claude Code bundled skill. Enforced by the collision check.
+
+  - path: .claude/commands/tune.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/test.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/vision-integrate.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/explain.md
+    placement: command
+    update_triggers: [claude-code-release]
+    network: unaudited
+    optional: false
+
+  - path: .claude/commands/robot-review.md
+    placement: command
+    update_triggers: [claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      Renamed from `review`: `/review` is an ALIAS of the product's `/code-review`. Enforced by
+      the collision check. This is a ROBOT-CODE review and is not a substitute for the product's `/code-review`.
+
+  - path: .claude/commands/deploy.md
+    placement: command
+    update_triggers: [wpilib-release, claude-code-release]
+    network: unaudited
+    optional: false
+    note: >-
+      MUST NOT DEPLOY, and must never be changed to. v1.0 ships no deploy gate (see `withdrawn:`
+      below), so a `/deploy` that invoked the deploy task would be the only thing between a student
+      and a moving robot — and a checklist that also presses the button is not a control. It asks
+      the physical questions no script can see first, has the team run `frc-pre-deploy` themselves,
+      reports the verdict, and PRINTS the deploy command for a human to run.
+
+  - path: .claude/skills/frc-behavior-first/SKILL.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [season-kickoff]
+    network: unaudited
+    optional: false
+    note: >-
+      In the baseline source repository, this skill's marked body is the same text as the delimited
+      block in `baseline/templates/CLAUDE.md.template`. Nothing generates one from the other: they
+      are two hand-maintained copies. A build-time check extracts each block to a file
+      and compares the two files with `cmp`, so it detects any byte difference, including bytes a
+      shell variable cannot carry. It reported byte-identity through a shell capture until that was
+      corrected; a NUL inside a block was invisible to it then and is not now.
+      They are one discipline, not two similar ones. In that source repository, edit
+      `baseline/templates/CLAUDE.md.template` first, then make
+      `baseline/skills/frc-behavior-first/SKILL.md` match it.
+      (From Wave 1 until 2026-08-11 this entry claimed "CI compares them" while no such check
+      existed. A claimed control that is not implemented is worse than an absent one, because the
+      claim is what stops anyone building it.)
+
+  - path: .gitignore
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [none]
+    network: unaudited
+    optional: false
+    note: >-
+      Append-only managed block, applied BEFORE any other write. Idempotent: applying it twice
+      leaves the file byte-identical, and an update never removes an exclusion a team added.
+
+  - path: .claude/frc-baseline-manifest.yml
+    network: unaudited
+    optional: false
+    note: >-
+      setup/setup-frc-baseline.sh copies this file to the recorded destination. The installer uses
+      independent destination logic rather than resolving destinations from this list.
+
+  - path: COMMERCIAL-LICENSE.md
+    placement: skill
+    placement_condition: has-supporting-files
+    update_triggers: [licence-change]
+    network: unaudited
+    optional: false
+    note: >-
+      The commercial licence source under baseline/, held byte-identical to the checkout's top-level
+      copy by a build-time check. This row records its current installed destination;
+      setup/setup-frc-baseline.sh uses independent destination logic rather than resolving it from
+      this list. That check confirms
+      neither artifact headers nor pointer resolution.
+
+# ---------------------------------------------------------------------------------------------
+# WHAT SEPARATES A MANAGED PATH FROM A DECLARATION IS THE POSITION OF THE NEXT COMMENT LINE, not any
+# field value. Both build-time consumers of this field share
+# one awk expression that reads `  - path:` rows from `artifacts:` and STOPS at the line beginning
+# `# WITHDRAWN FROM v1.0`. So the `withdrawn:` and `planned:` lists below are outside the managed set
+# because of where they sit, and a row placed inside `artifacts:` is managed whatever it declares.
+#
+# THAT COMMENT LINE IS THEREFORE A LOAD-BEARING PARSER SENTINEL. Measured 2026-08-28: rewording it to
+# `v1.1` makes the shared awk return 30 paths instead of 25, and the review-record check then
+# BLOCKS `(no-source)` on
+# the five extra rows -- loud, but misattributed to reviews rather than to a comment edit.
+#
+# An earlier revision put a "Declared but NOT YET BUILT" heading here, immediately above `withdrawn:`,
+# and asserted that "CI treats a `built: false` row as a declaration, not as a managed path". Three
+# things were wrong with it: it headed the wrong list (`planned:` is at the foot of this file, under
+# its own correct comment); `built:` is read by no build tooling and no installer; and
+# there is no "update path" -- the installer leaves an existing manifest alone.
+# ---------------------------------------------------------------------------------------------
+
+# WITHDRAWN FROM v1.0 — recorded so the absence is a decision rather than a gap.
+# EDITING THE LINE ABOVE CHANGES WHAT CI COUNTS AS A MANAGED PATH. See the block above before you do.
+withdrawn:
+  - path: .claude/skills/frc-tutor-*/SKILL.md
+    decided: 2026-08-11
+    retained_at: null
+    note: >-
+      "THE TUTOR SKILLS" — never built, never specified, and the plural never justified. The phrase
+      existed as ONE README table cell from Wave 1 and nowhere else: not in this manifest's planned
+      list, not in the schema host's consumer list, not in the register, not in any doc, not in any
+      commit, branch or stash. Weaker existence even than frc-new-subsystem, which was at least
+      declared as a consumer. The "3" beside it was the WAVE column, not a count of three skills —
+      nothing anywhere states how many were imagined.
+      REPLACEMENT, per this repository's rule that a withdrawal names one or states there is none:
+      the code-teaching capability SHIPS, as `/explain` — whose audience is exactly the student who
+      "can read code but has not read THIS code", and whose exit test is that the student can explain
+      it without help — plus the student-handoff passages that end `/subsystem`, `/auto`, `/test`,
+      `/tune`, `/robot-debug`, `/robot-review` and `/deploy`, plus the unconditionally-loaded
+      CLAUDE.md layer. Teaching here is distributed by design, not missing.
+      WHAT IS GENUINELY NOT COVERED, and where it belongs: concept teaching unanchored to project
+      code, judged-interview preparation beyond the code itself, and mentor curriculum structure.
+      All three are prose a human reads or facts about the FIRST program — not instructions
+      constraining a model session.
+      CORRECTION, 2026-08-11, same day: this entry first said they "belong to the written-guide
+      REPOSITORY". THERE IS NO SUCH REPOSITORY. The written guide is a BOOK — *FRC 2027 Cycle
+      Guidance* — and the only sibling repo, `frc-2027-companion`, holds that volume's CODE artifacts
+      (its README maps them to Appendix D, §29, Appendix K.7), not curriculum. Whether the volume
+      itself covers concept teaching, judged-interview prep or mentor curriculum is NOT VERIFIABLE
+      from this repository, and was not verified before that claim was committed.
+      So the honest status of the residue is UNASSIGNED, not routed. Naming a destination is not the
+      same as covering a gap, and the scoping review that recommended this drop said explicitly it
+      could not verify the guide contains any teaching content — that caveat was dropped in the
+      writing-up. Anyone reopening this should confirm what the volume actually covers first.
+      WHY NOT BUILD IT ANYWAY. Two of this repository's own measured rules decide it. A tutor skill
+      meant to engage at a teachable moment inherits the 1-in-5 engagement measured for it, and this
+      project already ruled that a safety artifact firing unpredictably is worse than silence. And
+      what it would add beyond `/explain` is either FACTS — which cite-don't-restate forbids outside
+      the schema host, and the no-model-memory rule forbids writing from recollection — or PROSE,
+      which is the written guide. A requirement whose honest statement routes the work to a different
+      repository is not a requirement on this one.
+      THE COST OF BEING WRONG, stated: a mentor scanning the command list finds `/explain` but
+      nothing named "teach" or "tutor", and may conclude teaching is unsupported. This entry is the
+      mitigation; discoverability is the thing to fix if anyone reopens it.
+
+  - path: .claude/skills/frc-code-reviewer/SKILL.md
+    decided: 2026-08-11
+    retained_at: the private build repository
+    note: >-
+      NOT BUILT, and withdrawn on MEASUREMENT rather than on doubt. Its whole justification was
+      that a model-invocable skill would apply during code generation, covering what a student never
+      thinks to ask about. Probed at Claude Code 2.1.227: the skill engaged 1 time in 5, and a
+      path-scoped rule -- the stronger mechanism -- engaged 4 in 7. Neither is enforcement; the
+      product documents rules and memory as "context, not enforced configuration".
+      A safety artifact that fires unpredictably is worse than silence, because the
+      team believes it is covered. So the value the probe demonstrated was moved to where loading is
+      unconditional: the field-defect list now sits in CLAUDE.md.template, which loads in full at
+      launch every session. A build-time check holds that list and /robot-review's list
+      byte-identical; that check is not installed in a team's project.
+      THIS FIXES LOADING, NOT COMPLIANCE. The model can still ignore a rule it has been given; only a
+      PreToolUse hook closes that, and v1.0 ships no PreToolUse, blocking, or deploy-gate hook. The
+      failure mode changes from "never saw the rule" to "had the rule and did not follow it", which
+      is an improvement and not a guarantee.
+      The requirements document is retained: it holds the capability gap, the measurements, and the
+      criterion that killed it.
+
+  - path: .claude/skills/frc-sim-verifier/SKILL.md
+    decided: 2026-08-11
+    retained_at: null
+    note: >-
+      NEVER BUILT, never specified, and dropped on COST — not on redundancy. The distinction is the
+      whole entry: the redundancy argument was examined and defeated, and the capability
+      gap it names is REAL AND REMAINS UNCOVERED. There is no replacement.
+      What is genuinely uncovered: nothing in this repository verifies that robot code BEHAVES
+      correctly once its simulation has started. `frc-pre-deploy` stage 3 confirms the program boots
+      and prints one banner line -- its own comment calls it a budget for the startup LINE TO APPEAR,
+      not a run-to-completion time -- so a robot whose autonomous drives into a wall, or whose
+      scheduler deadlocks on enable, still records `simulate: pass`. That is the gap, and it stands.
+      What does NOT support it, corrected 2026-08-28 after each clause was checked against the
+      shipped text: `/test`, `/tune` and `/vision-integrate` do not disclaim
+      simulation testing -- each PRESCRIBES it with a stated limit (`/test` has a "Simulation-based
+      tests" section; `/tune` says to establish resting behaviour in simulation, not on the powered
+      robot; `/vision-integrate` says not to test ONLY in simulation). `/test` also routes the reader
+      to the schema host's package map for the simulation namespace, so "nothing consumes it" was
+      wrong by reference. And `/subsystem` does not scaffold simulation paths on any promise: it
+      extends an EXISTING simulation path or reports that none was found and adds no scaffolding.
+      The sentence previously quoted here as its "stated promise" was not `/subsystem`'s and was not
+      any artifact's: when it was checked, that wording existed only in this note, and removing
+      it from here leaves it in no file at all. A quotation gets checked against its source before it
+      is recorded.
+      The drop is a judgement that it is not worth building now, by one maintainer, for volunteer
+      teams -- not a claim that the job is done elsewhere. Anyone reinstating it should start from
+      the sentence above, which is the requirement nobody ever wrote.
+
+  - path: .claude/skills/frc-new-subsystem/SKILL.md
+    decided: 2026-08-11
+    retained_at: null
+    note: >-
+      NEVER BUILT, and now dropped rather than carried. It was declared in the schema host's consumer
+      list at Wave 1 and appeared NOWHERE else in the repository — no manifest entry, no
+      specification, nothing describing what it would do. Wave 2 then shipped the `/subsystem`
+      command, which scaffolds a subsystem, so the remaining role was a second scaffolder under a
+      different name.
+      The dangling entry was invisible to the build check that compares declaring artifacts against
+      the host list, because that check runs in ONE direction only — a forward declaration of an
+      unbuilt artifact is legitimate by
+      design, so an entry for something nobody intends to build looks exactly like a plan.
+
+  - path: .claude/hooks/frc-deploy-gate.sh
+    decided: 2026-08-09
+    retained_at: the private build repository
+    note: >-
+      The deploy gate was withdrawn before release because of its design, not because of a defect count.
+      The command layer cannot carry a deploy guarantee -- text does not reliably represent what will
+      execute. v1.0 therefore ships NO deploy guarantee, stated plainly, plus frc-pre-deploy as a
+      validation skill a team invokes. The verdict contract and staleness mechanism were rated sound
+      and are retained for a future attempt at a different enforcement boundary.
+
+# A path appears in EXACTLY ONE of artifacts / withdrawn / planned. The three lists answer three
+# different questions — what ships, what was decided against, what is still coming — and a path in two
+# of them makes all three unreliable, because a reader who checks one list stops looking.
+#
+# `.claude/skills/frc-code-reviewer/SKILL.md` was in BOTH `withdrawn:` and here, from 2026-08-11 until
+# 2026-08-12. Removed from this list; the withdrawn entry above is the record, and it holds the
+# measurement that killed it. Nothing in the suite compares the three lists, so this was found by
+# reading — the same way the frc-new-subsystem dangle was, and for the same structural reason.
+#
+# `.claude/skills/current-claude-models/SKILL.md` moved from here to `artifacts:` on 2026-08-13. It is
+# BUILT. The list is now empty, which is the honest state and is left in place rather than deleted:
+# an absent `planned:` key and an empty one are different claims.
+planned: []

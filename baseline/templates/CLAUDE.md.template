@@ -1,0 +1,194 @@
+<!-- Unlabs AI Toolkit for FRC 2027 Season Teams __BASELINE_VERSION__ · installed __INSTALL_DATE__ · baseline source ref __SOURCE_REF__ · Upstream: current-wpilib-2027 -->
+
+# Robot code conventions
+
+## Toolchain — 2027 overrides that displace older training data
+
+**Read this section before generating any WPILib code. It contradicts most WPILib material that
+exists, and the older material is what a model has seen most of.**
+
+WPILib 2027 uses the Java package root **`org.wpilib`**. It **replaces `edu.wpi.first`, which no
+longer exists.** Both halves matter: naming only the new root leaves the old one in place as a
+default. When an example, tutorial, or forum answer targets a release before 2027, do not carry its
+package root forward.
+
+**Do not generate these identifiers.** They are removed, not deprecated — removed code does not
+compile at all, where deprecated code compiles with a warning:
+
+- any import beginning `edu.wpi.first.`
+- `edu.wpi.first.wpilibj.XboxController` / `PS4Controller` / `PS5Controller` / `StadiaController` —
+  2027 replaces all four, and **which class replaces them depends on the Driver Station**. On the
+  2027 FIRST Driver Station the documented replacement is `org.wpilib.driverstation.Gamepad`. On the
+  NI Driver Station the documented Xbox replacement is
+  `org.wpilib.driverstation.NiDsXboxController`; replacements for PS4, PS5 and Stadia were **not
+  established** — do not infer them from parallel class names
+- `edu.wpi.first.wpilibj2.command.*` — 2027 uses `org.wpilib.command2.*`
+- `CommandXboxController` — its 2027 replacement was **not established**; do not infer one from
+  `CommandGamepad` or `CommandNiDsXboxController`
+
+The controller classes changed **twice over**: the package moved *and* the class is a different
+class. Fixing only the import path still leaves an unresolved symbol. **Ask which Driver Station
+this team runs before choosing one; do not pick one for them.**
+
+`edu.wpi.first.math.*` is not a root-only rewrite either — some sub-packages moved as well:
+`edu.wpi.first.math.Matrix` is `org.wpilib.math.linalg.Matrix`, `edu.wpi.first.math.MathUtil` is
+`org.wpilib.math.util.MathUtil`, `edu.wpi.first.math.Nat` is `org.wpilib.math.util.Nat`, and
+`edu.wpi.first.math.system.plant.DCMotor` is `org.wpilib.math.system.DCMotor`. The skill's
+`references/namespaces.md` records every move it measured, with the method and that method's limits.
+
+**Two command frameworks ship side by side** — `org.wpilib.command2` and `org.wpilib.command3`. They
+are different models, and `Command` exists in both as different types. **Ask which one this project
+uses; do not infer it.**
+
+**Nothing in this baseline reads which WPILib version this project is on, and this file is
+installed whether or not a robot project exists yet.** This section was written against a WPILib
+2027 alpha, whose shipped release and development branch disagree today. Establish from the
+project itself what it is actually on; if it is not on that alpha, or you cannot establish what
+it is on, say so rather than generating code against this section.
+When a class location matters and you cannot establish which the team has, **say so and give both**.
+Do not pick one. The authoritative record of every fact in this section, with the ref each was
+verified against, is the `current-wpilib-2027` skill — when this section and that skill disagree,
+**the skill is right and this file is stale.**
+
+## Build and run
+
+| Task | Command |
+|---|---|
+| Build | `./gradlew build` |
+| Test | `./gradlew test` |
+| Simulate (Java) | `./gradlew run` — see the note below |
+| Add a vendor library | `./gradlew vendordep --url=<url>` |
+
+**Simulation: use `run`, not `simulateJava`.** Measured against WPILib `2027.0.0-alpha-7`: there is
+no `simulateJava` task. Gradle will abbreviate that name to `simulateExternalJava`, which **exits
+without starting a robot program** — so `./gradlew simulateJava` can report success having
+simulated nothing. The official 2027 documentation still says `simulateJava`; the build does not.
+If your WPILib version restores it, prefer whatever `./gradlew tasks --all` actually lists.
+
+**Do not run any `deploy` task.** Nothing in this baseline enforces that — see the safety section
+below for what deploying safely actually requires of you.
+
+The permission rules installed with this baseline pre-approve the first three of those commands as
+the bare task forms written above. Append an option or an argument to one and it stops matching that
+grant, so what happens next is whatever your permission mode does with a command no rule matched —
+in the default mode, it asks you. That is expected, not a fault.
+
+**Unless the longer form contains `deploy`, which is denied outright.** The deny rules are consulted
+independently of the grants and win over them, and two of them match `deploy` anywhere in the
+command — so `./gradlew build deploy` is denied, not merely unapproved. That is deliberate: a deploy
+hidden behind another task name is exactly the shape those rules exist to stop.
+
+**That rule is a speed bump, not a gate.** It matches command TEXT. A wrapper script, an alias, a
+different working directory, or any spelling it does not match is not stopped. Nothing in this
+baseline can prevent a deploy — see the safety section below.
+
+**If this project already had a `.claude/settings.json` when the baseline was installed, none of
+the rules described above were written** — the installer never modifies a settings file it did not
+create. Check the file before relying on any of them.
+
+Those permission rules need **Claude Code v2.1.228 or later**. Run `claude --version` and check.
+Below that version the vendor's own permissions documentation does not establish that a write to a
+path this baseline protects is checked at all, so protections you can see in the settings file may
+not be in effect.
+
+Never edit `vendordeps/`, `gradle/`, `gradlew`, `gradlew.bat`, or `.wpilib/`. Those belong to the
+toolchain; editing them turns every upgrade into a merge conflict.
+
+<!-- FRC-SAFETY-BEGIN -->
+## Safety
+
+**This code runs a machine with motors, near people. That is the whole reason for this section.**
+
+**Deploying is not gated, and nothing in this baseline enforces the rule that follows — it is a
+discipline you and the team carry, not a control the tooling carries for you.** Treat it as gated
+anyway: deploy only on a fresh `/frc-pre-deploy` `PASS` against *this exact working tree*. Validate,
+then edit, then deploy is the normal thing to do under time pressure, and it is exactly the sequence
+that invalidates the verdict — the verdict describes the code that was checked, not the code you now
+have. Revalidate after any edit.
+
+**Never write a current limit, gear ratio, or free-speed figure copied from another team's code or a
+guide.** Derive them from this mechanism's own motor and gearbox — from the manufacturer's own
+datasheet for the parts actually installed, not from another team's number. A number that is correct
+on another team's robot is a hazard on this one, and a number in a document that reads as
+authoritative is worse than no number, because it will be trusted. **Do not copy limits from another
+team's code or from a guide.**
+
+If a safety-relevant value cannot be derived from something in this repository, **stop and say so**
+rather than choosing one.
+
+**Never write a secret, API key, or token into a tracked file** like `src/Constants.java`, and do
+not read `secrets/` or `.env` by any route, including shell commands. Treat the permission rules as
+incomplete and carry this prohibition yourself.
+<!-- FRC-SAFETY-END -->
+
+## Team conventions
+
+<!-- Fill this in. The baseline ships no team data and never will. -->
+
+- Team number: __TEAM_NUMBER__
+- Subsystem layout, naming, and CAN ID assignments: __TEAM_CONVENTIONS__
+
+**Read this section before generating code. If it is still unfilled, stop and say so** — do not
+invent a convention, a CAN ID, or a team number.
+
+## The defects that strand a robot on a field
+
+**Avoid these as you write. Do not wait for a review to catch them.** `/robot-review` checks the
+same list. If this list and the `/robot-review` copy differ, say so and treat neither as
+authoritative.
+
+<!-- FRC-FIELD-DEFECTS-BEGIN -->
+1. **A motor left running.** A command that ends or is interrupted without stopping what it started.
+   Trace the interruption behaviour and report the test or review evidence you actually found.
+2. **A missing or wrong requirement declaration**, letting two commands drive one mechanism.
+3. **An unbounded loop or a blocking call** in code that runs every cycle. Anything that waits,
+   sleeps, or retries in the main loop can cause missed cycles, and the symptom is a robot that
+   responds late and unpredictably. Judge a network read by whether it can wait, not by what it
+   touches — WPILib's own NetworkTables documentation puts subscriber reads inside a periodic
+   method. Do not flag one as this defect unless you can say where it waits.
+4. **A limit that is enforced in only one place**, or only on the way up. Judge a software-only
+   limit by what happens when that code does not run — do not flag one as this defect unless you
+   can say what it fails to protect.
+5. **A unit mismatch.** Degrees into a method expecting radians, rotations into one expecting
+   metres. This compiles.
+6. **A sensor read with no handling for it being absent, stale or impossible.**
+7. **A number nobody can account for.** A gain, an offset or a conversion with no derivation and no
+   comment. Flag it and ask; do not guess where it came from.
+8. **An uncaught exception on a path that runs every cycle** — in init or in a periodic method.
+   It does not misbehave; it takes the whole program down, and the robot stops responding entirely.
+<!-- FRC-FIELD-DEFECTS-END -->
+
+<!-- FRC-BEHAVIOR-FIRST-BEGIN -->
+## Behavior first
+
+Before writing code for a mechanism, state in one or two sentences what it should **do** — the
+observable behavior, its limits, and how you will know it worked. Get that agreed before writing
+the implementation.
+
+When a request is ambiguous about behavior, ask rather than choosing. After writing code, or before
+accepting code that already exists, restate the behavior it actually implements and name any way it
+differs from the agreed behavior. If no behavior was agreed, say so instead of inventing one.
+
+This applies to generated code and to human-written code equally.
+<!-- FRC-BEHAVIOR-FIRST-END -->
+
+## Before robot code goes anywhere near a robot
+
+**Run `/robot-review` on it.** This is a required manual step: its installed command sets
+`disable-model-invocation: true`, and the installed `/frc-pre-deploy` skill does not invoke it. Run
+it separately.
+
+Then run `/frc-pre-deploy` and read the verdict. **It reports; it does not enforce**, and nothing in
+this baseline prevents a deploy.
+
+**A PASS is necessary, not sufficient. A human authorises every physical deploy.** And on every
+verdict, compare `sim_ready_pattern` against the literal banner documented in the `frc-pre-deploy`
+skill — the `sim_ready_pattern_overridden` flag cannot detect a directly edited default, so a
+verdict can look clean against a pattern that no longer matches what WPILib prints.
+
+## What to do when you are not sure
+
+Say so. An unverified answer that sounds confident costs a team more than "I don't know" does,
+because it gets built on. This is especially true of API names on an alpha platform: a plausible
+class name that does not exist fails at compile time if you are lucky, and at a competition if you
+are not.

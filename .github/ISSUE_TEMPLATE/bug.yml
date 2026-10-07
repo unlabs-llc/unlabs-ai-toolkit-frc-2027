@@ -1,0 +1,41 @@
+name: Something doesn't work
+description: The toolkit did something wrong, or didn't do what its documentation says.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Support is community-only and best effort (see the README). Don't paste tokens, passwords
+        or your team's private code. For a security problem, don't use this form: see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Toolkit version
+      description: The `version:` line near the top of `.claude/frc-baseline-manifest.yml` in your robot project.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: ["Windows (Git Bash)", "macOS", "Linux"]
+    validations:
+      required: true
+  - type: input
+    id: claude-code
+    attributes:
+      label: Claude Code version
+      description: The output of `claude --version`.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: verdict
+    attributes:
+      label: What /frc-pre-deploy reported (if it's involved)
+      description: The stage table from its verdict. Leave blank if it isn't relevant.
+      render: text

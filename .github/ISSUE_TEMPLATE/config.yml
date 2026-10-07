@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/unlabs-llc/unlabs-ai-toolkit-frc-2027/discussions
+    about: Questions about using the toolkit go in Discussions, in the Q&A category.
+  - name: Report a security problem privately
+    url: https://github.com/unlabs-llc/unlabs-ai-toolkit-frc-2027/security
+    about: Don't open a public issue. Use "Report a vulnerability" on the Security and quality tab.

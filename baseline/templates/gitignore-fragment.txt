@@ -1,0 +1,110 @@
+# --- Unlabs AI Toolkit for FRC 2027 Season Teams (managed block — safe to keep, do not reorder) ----
+# Copyright Unlabs, LLC — PolyForm Noncommercial 1.0.0.
+#
+# This block is appended by the baseline scaffold BEFORE any other file is written. The ordering is
+# the point: a gitignore that predates the first key. Once a credential is committed even once,
+# removing it from the working tree does not remove it from history, and a student cannot un-ring
+# that bell.
+#
+# The block is append-only and idempotent: applying it twice leaves the file byte-identical, and an
+# update never removes an exclusion a team added.
+#
+# PRESENT IS NOT THE SAME AS IN EFFECT. gitignore is last-match-wins, and a .gitignore in a lower
+# directory overrides a higher one (gitignore(5)), so a later line — inside this block, below it, or
+# in a .gitignore deeper in the tree — can re-include a path this block excludes while every line
+# here is still present and readable. So the scaffold does not stop at reading this block back. It
+# asks git two questions about this block and stops the run unless both answer.
+#
+# ONE: DERIVED PATHS, for the exclusion lines that name a path literally. A line anchored by a `/` at
+# its start or in its middle is asked about at the repository root, which is the only place it claims
+# anything; a line that matches at any depth is asked about once in every directory that exists when
+# the scaffold runs. A line carrying `*`, `?`, `[`, `]` or `\` names no single path, so it is counted
+# and skipped rather than turned into one. An earlier version of this check did turn one into one: it
+# rewrote `.env.*` as the invented filename `.env.frc-baseline-probe`, asked git about THAT, and
+# passed while .env.production was trackable (measured 2026-08-23). A witness the checker invents for
+# itself is not a witness.
+#
+# TWO: THE PATHS GIT KNOWS ABOUT HERE, which needs no invented name. Of the paths git knows about in
+# this project and has NOT committed, does this block's own text name any of them? That question is
+# asked in a scratch repository whose only ignore input is this block, so the answer is about this
+# block and not about the machine's git configuration.
+#
+# That set is not the untracked files alone, and getting it wrong is how two earlier builds each
+# passed a live credential. `git ls-files --others` returns paths that are not in git's INDEX, so a
+# path put into the index escapes it — including one recorded by `git add -N`, which adds a
+# contentless entry whose contents a later `git add .` still stages. Measured 2026-08-22: with only
+# `--others` on the list, a `git add -N .env.production` and a negation line below this block
+# produced a successful install and a stageable credential. Adding the paths that differ from HEAD as
+# additions closed that one and still missed two, both measured the same day handing the credential
+# to a plain `git commit`: a path staged and then deleted from the working tree, and a `git mv` of a
+# tracked file onto a name this block excludes. The list is now the paths `git status` reports as
+# untracked-and-not-ignored, as recorded by `git add -N`, or as an addition in the index — and it
+# does NOT require the path to be a file sitting in the working tree, because a path staged and then
+# deleted is still in the index and the next commit still records it.
+#
+# WHAT THAT DOES AND DOES NOT SETTLE, because the difference matters and two earlier versions of this
+# check got it wrong. It settles that git ignores THE PATHS ASKED ABOUT, and that of the paths git
+# knows about here and has not committed, this block's text names none that git can still see — and
+# no more than that. It is a list of real paths and a set of real paths, not a statement about the
+# patterns: a directory created later, a file created in it, and any edit made to any .gitignore
+# afterwards are all outside what the run checked. A path that is UNMERGED in a conflicted merge is
+# outside it too: git will not make a commit at all while one is present — measured 2026-08-22 at
+# git 2.43.0, `git commit` exited 128 and recorded nothing, and the same commit succeeded once the
+# conflict was resolved with `git add` — so there is nothing for this block to have failed to
+# prevent yet, and it is a later run that would see it once the conflict is resolved. For a
+# wildcard line, question TWO is the only one that speaks for it, so what is established about
+# `.env.*` is bounded to the paths that existed at that moment. A credential that was ALREADY
+# COMMITTED before this block existed is outside both questions, and that is deliberate rather than an
+# oversight: .gitignore does not apply to a file git already tracks (gitignore(5)), so this block
+# neither covers such a file nor failed on it. Reporting one here would name a defeat that did not
+# happen: a project that had committed a path this block names -- committed build output, say --
+# would be stopped on a run made while that path differed from what was committed. Getting a
+# committed credential out of a repository is a different job, and history is where it lives. The
+# scaffold prints how many paths it asked about, how many directories they came from, how many lines
+# it did not turn into paths, and how many known-but-uncommitted paths it compared, so the size and
+# shape of the check are visible rather than assumed.
+#
+# Nothing re-asks any of this afterwards, with one exception: on every run the pre-deploy runner asks
+# git whether its own verdict path under .claude/frc/ is ignored, and asks about no other path. That
+# is a related question, not the same one — it is a different invocation, and it consults the index
+# as well. A later edit to this file, or a new .gitignore added below it, goes unnoticed until
+# someone runs the scaffold again.
+#
+# One thing NOT to go looking in: .git/info/exclude cannot cause this. Git reads it at a LOWER
+# precedence than any .gitignore (gitignore(5)), so a negation there cannot re-include what a line
+# below re-excludes. Measured 2026-08-22: `.gitignore` holding `.env` and `.git/info/exclude` holding
+# `!.env` leaves .env ignored.
+
+# Personal, per-developer Claude Code settings. The tool manages this one itself.
+.claude/settings.local.json
+
+# Personal Claude Code overrides. NOTE: this file is NOT auto-ignored by the tool — it is excluded
+# only by this explicit entry. It is easy to confuse with settings.local.json above, which the tool
+# genuinely handles; conflating the two is how a hand-created override file gets committed.
+# The LEADING slash anchors this to the repository root, which is where the file lives. A pattern
+# with a slash at its beginning or middle is relative to the .gitignore's own directory
+# (gitignore(5)), so the earlier entry `.claude/CLAUDE.local.md` matched only inside .claude/ and
+# never the root file. A slash-FREE pattern would over-match instead, ignoring a deliberately
+# tracked file of that name in any subdirectory.
+/CLAUDE.local.md
+
+# Pre-deploy verdict. Gitignored deliberately: a committed passing verdict could travel from one
+# student's machine to another's dirty tree, where it would read as a current pass for code it never
+# described. v1.0 ships no deploy gate and nothing enforces verdict freshness, so do not commit a
+# verdict, and do not read a verdict that came from another machine.
+.claude/frc/
+
+# Credentials. Paired with the Read/Edit deny rules in the settings template, with one deliberate
+# exception: `.env.example` is unignored below so a team can commit it, but the deny rules
+# (Read(.env.*) / Edit(.env.*)) have no carve-out for it, and one cannot be added as a relief rule —
+# Claude Code evaluates deny before allow and a broader deny always wins over a narrower allow, so an
+# allow rule cannot carve an exception out of a deny rule. The model can discuss what belongs in
+# .env.example; a human still has to write the file. Elsewhere the two lists name the same paths on
+# purpose: a directory the model may not read but git will happily commit is the asymmetry that
+# produces a leaked key.
+secrets/
+.env
+.env.*
+!.env.example
+
+# --- end Unlabs AI Toolkit for FRC 2027 Season Teams managed block ----------------------------------

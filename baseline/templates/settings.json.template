@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew build)",
+      "Bash(./gradlew test)",
+      "Bash(./gradlew run)",
+      "Bash(./gradlew simulateJava)",
+      "Bash(.claude/tools/frc-docs-probe.sh:*)"
+    ],
+    "deny": [
+      "Edit(.claude/tools/**)",
+      "Edit(.claude/skills/frc-pre-deploy/scripts/**)",
+      "Bash(./gradlew deploy*)",
+      "Bash(./gradlew *deploy*)",
+      "Bash(gradle deploy*)",
+      "Bash(gradle *deploy*)",
+      "Edit(vendordeps/**)",
+      "Edit(.wpilib/**)",
+      "Edit(gradle/**)",
+      "Edit(build.gradle)",
+      "Edit(gradlew)",
+      "Edit(gradlew.bat)",
+      "Read(secrets/**)",
+      "Edit(secrets/**)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Edit(.env)",
+      "Edit(.env.*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/tools/frc-version-check.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
